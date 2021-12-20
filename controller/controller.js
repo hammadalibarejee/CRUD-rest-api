@@ -24,7 +24,7 @@ exports.getData = async (req, res) => {
 exports.postData = async (req, res) => {
     try {
         // const newUser =await model.save(req.body.name,req.body.email,req.body.address);
-        const newUser =  new model(req.body)
+        const newUser = new model(req.body)
         await newUser.save();
         console.log(newUser);
         // res.status(200).send({
@@ -47,33 +47,33 @@ exports.postData = async (req, res) => {
     }
 }
 
-exports.updateData= async (req,res)=>{
-    try{
-        const user= await model.findByIdAndUpdate(req.params.id,req.body,{
-            new:true,
-            runValidators:true
+exports.updateData = async (req, res) => {
+    try {
+        const user = await model.findByIdAndUpdate(req.params.id, req.body, {
+            new: true,
+            runValidators: true
         });
         res.status(200).json({
-            status:'success',
-            data:{
-                user:user
+            status: 'success',
+            data: {
+                user: user
             }
         })
     }
-    catch(err){
+    catch (err) {
         res.status(404).json({
-            status:'failed',
-            message:err
+            status: 'failed',
+            message: err
         })
     }
 }
-exports.deleteData= async (req,res)=>{
+exports.deleteData = async (req, res) => {
     try {
         model.findByIdAndRemove(req.params.id)
         res.status(200).send('Data deleted successfully');
 
     }
-    catch (err){
+    catch (err) {
         console.log(err)
         res.status(500).send(err)
 
