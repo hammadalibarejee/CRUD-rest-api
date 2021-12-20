@@ -67,3 +67,15 @@ exports.updateData= async (req,res)=>{
         })
     }
 }
+exports.deleteData= async (req,res)=>{
+    try {
+        model.findByIdAndRemove(req.params.id)
+        res.status(200).send('Data deleted successfully');
+
+    }
+    catch (err){
+        console.log(err)
+        res.status(500).send(err)
+
+    }
+}

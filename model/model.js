@@ -12,15 +12,15 @@ catch(err){
 const usersSchema = new mongoose.Schema({
     name: {
         type: String,
-        // required: [true, 'The user must have the name ']
+        required: [true, 'The user must have the name ']
     },
     email: {
         type: String,
-        // required: [true, 'The user must have the email ']
+        required: [true, 'The user must have the email ']
     },
     address: {
         type: String,
-        // required: [true, 'The user must have the address']
+        required: [true, 'The user must have the address']
     }
 });
 
