@@ -7,10 +7,11 @@ router = express.Router();
 router
     .route('/')
     .get(controller.getData)
+    
     .post(controller.postData);
 
-// router
-//     .route('/')
-    // .get(controller.getData);
 
+router 
+    .route('/:id')
+    .put(controller.updateData);    
 module.exports = router; 

@@ -46,3 +46,24 @@ exports.postData = async (req, res) => {
         console.log(err);
     }
 }
+
+exports.updateData= async (req,res)=>{
+    try{
+        const user= await model.findByIdAndUpdate(req.params.id,req.body,{
+            new:true,
+            runValidators:true
+        });
+        res.status(200).json({
+            status:'success',
+            data:{
+                user:user
+            }
+        })
+    }
+    catch(err){
+        res.status(404).json({
+            status:'failed',
+            message:err
+        })
+    }
+}
