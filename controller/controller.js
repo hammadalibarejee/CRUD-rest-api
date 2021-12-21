@@ -8,7 +8,11 @@ exports.welcome = (req, res) => {
 }
 exports.getData = async (req, res) => {
     try {
-        const users = await model.find();
+        const queryObj = { ...req.query};
+        const excludedFeilds = ['page','sort','fields'];
+        excludedFeilds.forEach(el=> delete queryObj[el]);
+
+        const users = await model.find(queryObj);
         res.status(200).json({
             status: "success",
             results: users.length,
@@ -27,7 +31,7 @@ exports.postData = async (req, res) => {
         const newUser = new model(req.body)
         await newUser.save();
         console.log(newUser);
-        // res.status(200).send({
+        // res.status(200).send({ 
         //     data:[req.body],
         //     message:"success"
         // })
