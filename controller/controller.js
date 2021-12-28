@@ -1,5 +1,5 @@
 const model = require('./../model/model');
-const asyncCatch=require('./../utils/catchAsync');
+const asyncCatch = require('./../utils/catchAsync');
 
 
 exports.welcome = (req, res) => {
@@ -7,11 +7,11 @@ exports.welcome = (req, res) => {
 
 }
 exports.getData = asyncCatch(async (req, res) => {
-    
-    
-    const queryObj = { ...req.query};
-    const excludedFeilds = ['page','sort','fields'];
-    excludedFeilds.forEach(el=> delete queryObj[el]);
+
+
+    const queryObj = { ...req.query };
+    const excludedFeilds = ['page', 'sort', 'fields'];
+    excludedFeilds.forEach(el => delete queryObj[el]);
 
     const users = await model.find(queryObj);
     res.status(200).json({
@@ -22,7 +22,7 @@ exports.getData = asyncCatch(async (req, res) => {
         }
     })
     // try {
-       
+
     // } catch (err) {
     //     console.log(err);
     // }
@@ -48,7 +48,7 @@ exports.postData = asyncCatch(async (req, res) => {
 
     })
     // try {
-        
+
     // }
     // catch (err) {
     //     console.log(err);
@@ -56,7 +56,7 @@ exports.postData = asyncCatch(async (req, res) => {
 });
 
 exports.updateData = asyncCatch(async (req, res) => {
-    
+
     const user = await model.findByIdAndUpdate(req.params.id, req.body, {
         new: true,
         runValidators: true
@@ -68,7 +68,7 @@ exports.updateData = asyncCatch(async (req, res) => {
         }
     })
     // try {
-        
+
     // }
     // catch (err) {
     //     res.status(404).json({
@@ -78,12 +78,12 @@ exports.updateData = asyncCatch(async (req, res) => {
     // }
 });
 exports.deleteData = asyncCatch(async (req, res) => {
-    
+
     model.findByIdAndRemove(req.params.id)
     res.status(200).send('Data deleted successfully');
-    
+
     // try {
-       
+
 
     // }
     // catch (err) {

@@ -5,15 +5,15 @@ const app = require('./../app');
 router = express.Router();
 
 router
-    .route('/')
+    .route('/api')
     .get(controller.getData)
-    
+
     .post(controller.postData);
 
 
-router 
-    .route('/:id')
+router
+    .route('/api/:id')
     .put(controller.updateData)
     .delete(controller.deleteData);
-    
+
 module.exports = router; 

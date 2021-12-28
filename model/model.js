@@ -1,10 +1,10 @@
 const mongoose = require('mongoose');
 
-try{
+try {
     mongoose.connect('mongodb+srv://hammadali:hammad123@cluster0.ga4fb.mongodb.net/users?retryWrites=true&w=majority');
 
 }
-catch(err){
+catch (err) {
     console.log(err);
 
 }
