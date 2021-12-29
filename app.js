@@ -4,6 +4,8 @@ const dotenv = require('dotenv');
 const router = require('./routes/routes');
 const globalError= require ('./utils/appError');
 
+require('dotenv').config()
+
 const app = express();
 
 app.use(bodyParser.json());
@@ -20,6 +22,7 @@ app.all('*',(req,res,next)=>{
     next(err); 
 
 })
+
 
 // app.use((err,req,res,next)=>{
 //     err.statusCode= err.statusCode || 500;
