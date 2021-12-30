@@ -10,6 +10,7 @@ const app = express();
 
 app.use(bodyParser.json());
 app.use('/api', router);
+
 // app.use('/users', router);
 app.all('*',(req,res,next)=>{
 //     res.status(404).json({

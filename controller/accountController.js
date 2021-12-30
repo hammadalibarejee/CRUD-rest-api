@@ -1,3 +1,4 @@
+const { promisify } = require('util');
 const mongoose = require('mongoose');
 const account = require('../model/accountModel');
 const catchAsync = require('./../utils/catchAsync');
@@ -96,3 +97,37 @@ exports.login = catchAsync(async (req, res, next) => {
 
     });
 });
+
+exports.protect = async (req,res,next) =>{
+
+    const token= req.headers.authorization;
+    console.log(token);
+    if (!token){
+        return next(new AppError('You are not logged in the API', 401));
+    }
+    
+    // 2) Verification token
+  const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+
+  // 3) Check if user still exists
+  const currentAccount = await account.findById(decoded.id);
+  if (!currentAccount) {
+    return next(
+      new AppError(
+        'The user belonging to this token does no longer exist.',
+        401
+      )
+    );
+  }
+
+  // 4) Check if user changed password after the token was issued
+  if (currentAccount.changedPasswordAfter(decoded.iat)) {
+    return next(
+      new AppError('User recently changed password! Please log in again.', 401)
+    );
+  }
+
+  // GRANT ACCESS TO PROTECTED ROUTE
+  req.account = currentAccount;
+  next();
+}

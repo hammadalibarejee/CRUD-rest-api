@@ -1,8 +1,8 @@
 const express = require('express');
 const controller = require('./../controller/controller');
 const accountController= require ('./../controller/accountController');
-// const app = require('./../app');
-// var  router  = require('./../app');
+const app = require('./../app');
+var  router  = require('./../app');
 
 
 router = express.Router();
@@ -12,13 +12,13 @@ router.post('/login',accountController.login);
 
 router
     .route('/')
-    .get(controller.getData)
-    .post(controller.postData);
+    .get(accountController.protect, controller.getData)
+    .post(accountController.protect,controller.postData);
 
 
 router
     .route('/:id')
-    .put(controller.updateData)
-    .delete(controller.deleteData);
+    .put(accountController.protect,controller.updateData)
+    .delete(accountController.protect,controller.deleteData);
 
 module.exports = router; 
