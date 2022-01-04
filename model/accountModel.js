@@ -62,6 +62,11 @@ accountSchema.pre('save', async function (next) {
     this.passwordConfirm = undefined;
     next();
 });
+accountSchema.pre('save',async function(next){
+    if (!this.isModified('password')|| this.isNew) return next();
+
+    this.passwordChangedAt=Data.now()-1000;
+})
 
 
 // accountSchema.methods.correctPassword = catchAsync(async function (

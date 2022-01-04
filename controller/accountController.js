@@ -7,6 +7,7 @@ require('dotenv').config();
 const AppError = require('./../utils/appError');
 const bcrypt = require('bcryptjs');
 const sendEmail=require('./../utils/email');
+const crypto=require('crypto');
 
 const comparePassword = async (password, hash) => {
     // try {
@@ -145,7 +146,7 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
 
     const resetURL = `${req.protocol}://${req.get(
         'host'
-    )}/api/forgotPassword/${resetToken}`;
+    )}/api/forgotPassword/${resetToken}`; 
 
     const message = `Forgot your password? Submit a PATCH request with your new password and password confirm to:${resetURL}\n If you didn't forgot your password just ignore this.`
     try{
@@ -170,4 +171,35 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
     }
 
 })
+exports.resetPassword= catchAsync(async(req,res,next)=>{
+
+    const hashedToken= crypto
+        .createHash('sha256')
+        .update(req.params.token)
+        .digest('hex');
+    const forgotAccount= await account.findOne({
+        createPasswordResetToken:hashedToken,
+        createPasswordResetTokenExpires:{$gt:Date.now()}
+    });
+
+    if (!forgotAccount){
+        return next(new AppError('Token is invalid or has expired ',400));
+    }
+    forgotAccount.password=req.body.password;
+    forgotAccount.passwordConfirm=req.body.passwordConfirm;
+    forgotAccount.createPasswordResetToken=undefined;
+    forgotAccount.createPasswordResetTokenExpires=undefined;
+    await forgotAccount.save();
+
+    const token =signToken(forgotAccount._id);
+
+    res.status(200).json({
+        status:'success',
+        token
+    })
+
+    
+
+});
+
 
