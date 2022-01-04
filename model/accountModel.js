@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const validator = require('validator');
 const asyncCatch = require('../utils/catchAsync');
 const catchAsync = require('../utils/catchAsync');
+const crypto= require('crypto');
 
 const accountSchema = new mongoose.Schema({
     name: {
@@ -35,8 +36,10 @@ const accountSchema = new mongoose.Schema({
         }
 
     },
-    passwordChangedAt: Date
-})
+    passwordChangedAt: Date,
+    passwrodResetToken:String,
+    passwrodResetTokenExpires:Date
+});
 // accountSchema.pre('save',asyncCatch(async function(next){
 //     // Only run if password is actually modified 
 //     if (!this.isModified('password')) return next();
@@ -82,7 +85,18 @@ accountSchema.methods.changedPasswordAfter = function(JWTTimestamp) {
     // False means NOT changed
     return false;
   };
+accountSchema.methods.createPasswordResetToken= function(){
+    const resetToken = crypto.randomBytes(32).toString('hex');
 
+    this.passwrodResetToken=crypto
+        .createHash('sha256')
+        .update(resetToken)
+        .digest('hex')
+    console.log(resetToken,this.passwrodResetToken); 
+    
+    this.passwrodResetTokenExpires=Date.now() + 10*60*1000;
+    return resetToken;
+} ;
 
 const account = mongoose.model('account', accountSchema);
 module.exports = account;

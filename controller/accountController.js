@@ -5,16 +5,17 @@ const catchAsync = require('./../utils/catchAsync');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const AppError = require('./../utils/appError');
-const bcrypt =require('bcryptjs');
+const bcrypt = require('bcryptjs');
+const sendEmail=require('./../utils/email');
 
 const comparePassword = async (password, hash) => {
     // try {
-        // Compare passwor
-        return await bcrypt.compare(password, hash);
+    // Compare passwor
+    return await bcrypt.compare(password, hash);
     // } catch (error) {
     //     console.log(error);
     // }
- 
+
     // Return false if error
     // return false;
 };
@@ -71,13 +72,13 @@ exports.login = catchAsync(async (req, res, next) => {
     }
 
     const accountLog = await account.findOne({ email });
-        // .select('+password');
+    // .select('+password');
     console.log(accountLog);
 
     const isValidPass = await comparePassword(password, accountLog.password);
-    
-    
- 
+
+
+
     // const correct= await accountLog.correctPassword(password, accountLog.password);
     // if (!correct){
     //     console.log('issue in password function')
@@ -85,49 +86,88 @@ exports.login = catchAsync(async (req, res, next) => {
 
     // const check= await bcrypt.compare(password, accountLog.password);
 
-    if (!accountLog.email || !isValidPass ) {
+    if (!accountLog.email || !isValidPass) {
         return next(new AppError('Incorrect email or password', 401));
     }
 
     console.log(accountLog);
     const token = signToken(accountLog._id);
     res.status(200).json({
-        status: 'success', 
+        status: 'success',
         token
 
     });
 });
 
-exports.protect = async (req,res,next) =>{
+exports.protect = async (req, res, next) => {
 
-    const token= req.headers.authorization;
+    const token = req.headers.authorization;
     console.log(token);
-    if (!token){
+    if (!token) {
         return next(new AppError('You are not logged in the API', 401));
     }
-    
+
     // 2) Verification token
-  const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+    const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
 
-  // 3) Check if user still exists
-  const currentAccount = await account.findById(decoded.id);
-  if (!currentAccount) {
-    return next(
-      new AppError(
-        'The user belonging to this token does no longer exist.',
-        401
-      )
-    );
-  }
+    // 3) Check if user still exists
+    const currentAccount = await account.findById(decoded.id);
+    if (!currentAccount) {
+        return next(
+            new AppError(
+                'The user belonging to this token does no longer exist.',
+                401
+            )
+        );
+    }
 
-  // 4) Check if user changed password after the token was issued
-  if (currentAccount.changedPasswordAfter(decoded.iat)) {
-    return next(
-      new AppError('User recently changed password! Please log in again.', 401)
-    );
-  }
+    // 4) Check if user changed password after the token was issued
+    if (currentAccount.changedPasswordAfter(decoded.iat)) {
+        return next(
+            new AppError('User recently changed password! Please log in again.', 401)
+        );
+    }
 
-  // GRANT ACCESS TO PROTECTED ROUTE
-  req.account = currentAccount;
-  next();
+    // GRANT ACCESS TO PROTECTED ROUTE
+    req.account = currentAccount;
+    next();
 }
+
+exports.forgotPassword = catchAsync(async (req, res, next) => {
+    const forgotAccount = await account.findOne({ email: req.body.email });
+
+    if (!forgotAccount) {
+        return next(new AppError('There is no such user found', 404));
+
+    }
+    const resetToken = forgotAccount.createPasswordResetToken();
+    await forgotAccount.save({ validateBeforeSave: false });
+
+    const resetURL = `${req.protocol}://${req.get(
+        'host'
+    )}/api/forgotPassword/${resetToken}`;
+
+    const message = `Forgot your password? Submit a PATCH request with your new password and password confirm to:${resetURL}\n If you didn't forgot your password just ignore this.`
+    try{
+        await sendEmail({
+            email:forgotAccount.email,
+            subject:'Your password reset token valid for 10 min',
+            message
+        });
+        res.status(200).json({
+            status:'success',
+            message:'Token sent to email!'
+        });
+
+    }
+    catch(err){
+        forgotAccount.createPasswordResetToken=undefined;
+        forgotAccount.createPasswordResetTokenExpires=undefined;
+        await forgotAccount.save({validateBeforeSave:false});
+        return next (
+            new AppError('There was an error sending the email. Try again later!'),500
+        );
+    }
+
+})
+

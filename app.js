@@ -10,7 +10,6 @@ const app = express();
 
 app.use(bodyParser.json());
 app.use('/api', router);
-
 // app.use('/users', router);
 app.all('*',(req,res,next)=>{
 //     res.status(404).json({
@@ -20,7 +19,7 @@ app.all('*',(req,res,next)=>{
     const err=new Error(`Can't find ${req.originalUrl} on this server`);
     err.status='fail';
     err.statusCode=404;
-    next(err); 
+    next(err); 7
 
 })
 

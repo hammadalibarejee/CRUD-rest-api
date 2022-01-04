@@ -10,6 +10,9 @@ router = express.Router();
 router.post('/signup',accountController.signup);
 router.post('/login',accountController.login);
 
+router.post('/forgotPassword',accountController.forgotPassword);
+// router.patch('/resetPassword:resetToken',accountController.resetPassword);
+
 router
     .route('/')
     .get(accountController.protect, controller.getData)
