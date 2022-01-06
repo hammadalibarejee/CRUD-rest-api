@@ -26,6 +26,17 @@ const signToken = (id) => {
   });
 };
 
+const createSendToken = (account, statusCode, res) => {
+  var token = signToken(account._id);
+  res.status(statusCode).json({
+    status: "success",
+    token,
+    // data:{
+    //     account
+    // }
+  });
+};
+
 exports.getAllAccounts = catchAsync(async (req, res, next) => {
   const allAccounts = await account.find();
   res.status(200).json({
@@ -45,15 +56,17 @@ exports.signup = catchAsync(async (req, res, next) => {
     passwordConfirm: req.body.passwordConfirm,
   });
 
-  const token = signToken(newAccount._id);
-  res.status(201).json({
-    status: "sucess",
-    message: "account has been created",
-    token,
-    data: {
-      Account: newAccount,
-    },
-  });
+  createSendToken(newAccount, 201, res);
+
+  //   const token = signToken(newAccount._id);
+  //   res.status(201).json({
+  //     status: "sucess",
+  //     message: "account has been created",
+  //     token,
+  //     data: {
+  //       Account: newAccount,
+  //     },
+  //   });
 });
 exports.login = catchAsync(async (req, res, next) => {
   const email = req.body.email;
@@ -81,11 +94,12 @@ exports.login = catchAsync(async (req, res, next) => {
   }
 
   console.log(accountLog);
-  const token = signToken(accountLog._id);
-  res.status(200).json({
-    status: "success",
-    token,
-  });
+  createSendToken(accountLog, 200, res);
+  //   const token = signToken(accountLog._id);
+  //   res.status(200).json({
+  //     status: "success",
+  //     token,
+  //   });
 });
 
 exports.protect = async (req, res, next) => {
@@ -96,7 +110,8 @@ exports.protect = async (req, res, next) => {
   }
 
   // 2) Verification token
-  const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+  var decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+  console.log(decoded);
 
   // 3) Check if user still exists
   const currentAccount = await account.findById(decoded.id);
@@ -173,13 +188,13 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   forgotAccount.createPasswordResetToken = undefined;
   forgotAccount.createPasswordResetTokenExpires = undefined;
   await forgotAccount.save();
+  createSendToken(forgotAccount, 200, res);
+  //   const token = signToken(forgotAccount._id);
 
-  const token = signToken(forgotAccount._id);
-
-  res.status(200).json({
-    status: "success",
-    token,
-  });
+  //   res.status(200).json({
+  //     status: "success",
+  //     token,
+  //   });
 });
 
 exports.updatePassword = catchAsync(async (req, res, next) => {
@@ -193,8 +208,11 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
   }
 
   //Verifying the token and finding that account by token
-  const decoded = promisify(jwt.verify)(token, process.env.JWT_SECRET);
-  const currentAccount = await account.findById(decoded.id);
+  const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+  //    decoded = promisify(jwt.verify)(token, process.env.JWT_SECRET);
+//   console.log("Decoded", decoded);
+  const currentAccount = await account.findById(decoded.id).select("+password");
+//   console.log("Current", currentAccount);
   if (!currentAccount) {
     return next(new AppError("Account not found!:"), 401);
   }
@@ -203,29 +221,52 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
     oldPassword,
     currentAccount.password
   );
-  if (!isValidPass){
-    return next(new AppError('Your old password is not correct '),401);
+  console.log(isValidPass);
+  if (!isValidPass) {
+    return next(new AppError("Your old password is not correct "), 401);
   }
-  const password= req.body.password;
-  const passwordConfirm=req.body.passwordConfirm;
-  
-  await currentAccount.update({
-      password:password,
-      passwordConfirm:passwordConfirm
+  const password = req.body.password;
+  const passwordConfirm = req.body.passwordConfirm;
 
-  });
-  token = signToken(currentAccount._id);
-  
-  console.log(token);
+  //   await currentAccount.update({
+  //       password:password,
+  //       passwordConfirm:passwordConfirm
 
-  res.status(200).json({
-      status:'success',
-      message:'The password have been changed successfuly',
-      token,
-      updatedAccount:{
-          currentAccount
-      }
-  })
+  //   });
+  //   currentAccount.password = password;
+  //   currentAccount.passwordConfirm = passwordConfirm;
+  //   await currentAccount.save();
+  //   await account.findByIdAndUpdate(
+  //     currentAccount._id,
+  //     {
+  //       password: currentAccount.password,
+  //     },
+  //     { new: true }
+  //   );
 
+  //   token = signToken(currentAccount._id);
 
+  //   createSendToken(currentAccount,200,res);
+  //   console.log(token);
+
+  //   res.status(200).json({
+  //     status: "success",
+  //     message: "The password have been changed successfuly",
+  //     token,
+  //     updatedAccount: {
+  //       currentAccount,
+  //     },
+  //   });
+
+  // 3) If so, update password
+
+  currentAccount.password = req.body.password;
+  currentAccount.passwordConfirm = req.body.passwordConfirm;
+//   console.log(currentAccount);
+  await currentAccount.save();
+
+  // User.findByIdAndUpdate will NOT work as intended!
+
+  // 4) Log user in, send JWT
+  createSendToken(currentAccount, 200, res);
 });
