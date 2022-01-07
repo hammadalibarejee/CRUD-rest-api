@@ -28,6 +28,14 @@ const signToken = (id) => {
 
 const createSendToken = (account, statusCode, res) => {
   var token = signToken(account._id);
+  const cookieOptions={
+    expires: new Date (
+      Date.now()+ process.env.JWT_COOKIE_EXPIRES_IN
+    ),
+    httpOnly:true
+  };
+  res.cookie('jwt',token,cookieOptions);
+
   res.status(statusCode).json({
     status: "success",
     token,

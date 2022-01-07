@@ -3,11 +3,21 @@ const bodyParser = require('body-parser');
 const dotenv = require('dotenv');
 const router = require('./routes/routes');
 const globalError= require ('./utils/appError');
+const helmet=require('helmet');
+// const rateLimit=require('express-rate-limit');
 
 require('dotenv').config()
 
 const app = express();
 
+// const limiter=rateLimit({
+//     max:100,
+//     windowMs:60*60*1000,
+//     message:'too many request from this IP,Kindly try after an hour'
+// });
+
+app.use(helmet());
+// app.use('/api',limiter);
 app.use(bodyParser.json());
 app.use('/api', router);
 // app.use('/users', router);
