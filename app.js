@@ -5,6 +5,8 @@ const router = require('./routes/routes');
 const globalError= require ('./utils/appError');
 const helmet=require('helmet');
 // const rateLimit=require('express-rate-limit');
+const mongoSanitize=require('express-mongo-sanitize');
+const xssClean=require('xxs-clean');
 
 require('dotenv').config()
 
@@ -17,6 +19,16 @@ const app = express();
 // });
 
 app.use(helmet());
+
+// Blocks noSql queries 
+
+app.use(mongoSanitize());
+
+
+//Data Sanitization 
+
+app.use(xxsClean());
+
 // app.use('/api',limiter);
 app.use(bodyParser.json());
 app.use('/api', router);
